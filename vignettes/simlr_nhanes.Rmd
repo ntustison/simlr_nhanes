@@ -10,15 +10,34 @@ vignette: >
 
 ## Introduction
 
-Cognitive decline and disorders such as dementia and mild cognitive impairment (MCI) are influenced by a variety of factors, including demographic, dietary, physical, mental, and environmental components (Livingston et al., 2020). Traditional statistical approaches often analyze these factors in isolation, potentially missing key interactions between predictors that jointly contribute to cognitive outcomes (James et al., 2013). Machine learning and data-driven dimensionality reduction methods provide a means to integrate multimodal data for improved prediction accuracy (Kline et al. 2022).  
+Cognitive decline and disorders such as dementia and mild cognitive impairment
+(MCI) are influenced by a variety of factors, including demographic, dietary,
+physical, mental, and environmental components (Livingston et al., 2020).
+Traditional statistical approaches often analyze these factors in isolation,
+potentially missing key interactions between predictors that jointly contribute
+to cognitive outcomes (James et al., 2013). Machine learning and data-driven
+dimensionality reduction methods provide a means to integrate multimodal data
+for improved prediction accuracy (Kline et al. 2022).  
 
-Similarity-driven Multi-view Linear Reconstruction (or learning) (SiMLR) is a novel approach designed to extract a unified low-dimensional representation from heterogeneous data sources (Avants et al., 2022). Unlike conventional factor analysis or principal component analysis (PCA), SiMLR preserves local relationships within each data modality while optimizing joint structure across multiple sources. This study applies SiMLR to the National Health and Nutrition Examination Survey (NHANES) dataset to assess whether a joint representation of demographic, dietary, physical health, mental health, and environmental factors can enhance the prediction of cognitive outcomes.
+Similarity-driven Multi-view Linear Reconstruction (or learning) (SiMLR) is a
+novel approach designed to extract a unified low-dimensional representation from
+heterogeneous data sources (Avants et al., 2022). Unlike conventional factor
+analysis or principal component analysis (PCA), SiMLR preserves local
+relationships within each data modality while optimizing joint structure across
+multiple sources. This study applies SiMLR to the National Health and Nutrition
+Examination Survey (NHANES) dataset to assess whether a joint representation of
+demographic, dietary, physical health, mental health, and environmental factors
+can enhance the prediction of cognitive outcomes.
 
 ## Methods
 
 ### Data and preprocessing
 
-Data were obtained from [NHANES](https://wwwn.cdc.gov/nchs/nhanes/Default.aspx), a nationally representative dataset containing health and nutritional information for the U.S. population. The `nhanesA` package in R was used to retrieve and merge multiple datasets, ensuring consistency in subject selection. Data modalities included:  
+Data were obtained from [NHANES](https://wwwn.cdc.gov/nchs/nhanes/Default.aspx),
+a nationally representative dataset containing health and nutritional
+information for the U.S. population. The `nhanesA` package in R was used to
+retrieve and merge multiple datasets, ensuring consistency in subject selection.
+Data modalities included:
 
 - **Demographics** (age, sex, educational attainment)  
 
@@ -30,24 +49,80 @@ Data were obtained from [NHANES](https://wwwn.cdc.gov/nchs/nhanes/Default.aspx),
 
 - **Environmental exposure** (metals and toxin levels)  
 
-Subjects with missing data exceeding a given \% of their total feature set were excluded to ensure robustness in model training. Continuous variables were normalized to a standard scale, and categorical variables were one-hot encoded.  Half-percent winsorization was applied before statistical learning to reduce the impact of outlying data points.
+To construct the integrated dataset, multiple NHANES tables were queried and merged.
+The table names (e.g., `DEMO_H`) follow a systematic convention: the prefix denotes
+the data category (e.g., `DEMO` for demographics), and the suffix indicates the
+survey cycle (e.g., `G` for 2011–2012, `H` for 2013–2014). The table below summarizes 
+key sources:
+
+| Table Name | Description                              | Cycle      |
+|------------|------------------------------------------|------------|
+| `DEMO_H`   | Demographics (age, sex, education)        | 2013–2014  |
+| `DPQ_H`    | Depression screener (PHQ-9)               | 2013–2014  |
+| `DR1TOT_H` | Dietary Recall Day 1 – Nutrient totals    | 2013–2014  |
+| `BMX_H`    | Body measurements (height, weight, BMI)   | 2013–2014  |
+| `PBCD_H`   | Blood levels of lead, cadmium, mercury    | 2013–2014  |
+
+Subjects with missing data exceeding a given \% of their total feature set were
+excluded to ensure robustness in model training. Continuous variables were
+normalized to a standard scale, and categorical variables were one-hot encoded.
+Half-percent winsorization was applied before statistical learning to reduce the
+impact of outlying data points.
 
 
 ### SiMLR Implementation  
 
-SiMLR was applied to the combined dataset as an unsupervised dimensionality reduction method to generate a low-dimensional representation of the cohort.  The resulting embeddings are used for joint prediction of cognitive outcomes.  Over 2000 subjects with these measurements are available along with environmental exposures in a large majority of these ($>$ 1400). The method preserves structure within each domain while optimizing for cross-domain similarity, ensuring that interdependencies between different health factors are retained. This representation was then used as input for a cognitive outcome prediction model, where cognitive scores were derived from standardized NHANES cognitive tests. 
+SiMLR was applied to the combined dataset as an unsupervised dimensionality
+reduction method to generate a low-dimensional representation of the cohort.
+The resulting embeddings are used for joint prediction of cognitive outcomes.
+Over 2000 subjects with these measurements are available along with
+environmental exposures in a large majority of these ($>$ 1400). The method
+preserves structure within each domain while optimizing for cross-domain
+similarity, ensuring that interdependencies between different health factors are
+retained. This representation was then used as input for a cognitive outcome
+prediction model, where cognitive scores were derived from standardized NHANES
+cognitive tests. 
 
-We predict the variable `z_digit_re` in NHANES which refers to the Digit Symbol Substitution Test (DSST), a cognitive assessment tool. The DSST evaluates processing speed, sustained attention, and working memory by requiring participants to match symbols with corresponding numbers under time constraints.  The predictive performance of SiMLR embeddings was compared to individual domain-based models using mean squared error (MSE) and R-squared (ℓ²) statistics.  
+We predict the variable `z_digit_re` in NHANES which refers to the Digit Symbol
+Substitution Test (DSST), a cognitive assessment tool. The DSST evaluates
+processing speed, sustained attention, and working memory by requiring
+participants to match symbols with corresponding numbers under time constraints.
+The predictive performance of SiMLR embeddings was compared to individual
+domain-based models using mean squared error (MSE) and R-squared (ℓ²)
+statistics.  
 
 ## Discussion
 
-SiMLR identifies predictors from diet, physical measurements, environmental exposures and mental health that jointly relate to DSST and related variables.  This example builds on prior work such as [this](https://pmc.ncbi.nlm.nih.gov/articles/PMC10093810/) and [this](https://www.nature.com/articles/s41598-025-87384-y) and [many others](https://scholar.google.com/scholar?hl=en&as_sdt=0%2C33&q=NHANES+cognition+exposures+diet+&btnG=).
+SiMLR identifies predictors from diet, physical measurements, environmental
+exposures and mental health that jointly relate to DSST and related variables.
+This example builds on prior work such as
+[this](https://pmc.ncbi.nlm.nih.gov/articles/PMC10093810/) and
+[this](https://www.nature.com/articles/s41598-025-87384-y) and [many
+others](https://scholar.google.com/scholar?hl=en&as_sdt=0%2C33&q=NHANES+cognition+exposures+diet+&btnG=).
 
-Traditional models often treat predictors of cognition as independent variables, failing to capture the complex interactions between different health determinants. The results of this study support the hypothesis that cognitive outcomes are best predicted using a *joint* representation that integrates multiple health factors. SiMLR-based embeddings consistently outperformed models trained on individual domains, demonstrating that cognition is influenced by an interplay of demographic, nutritional, physiological, psychological, and environmental components.  
+Traditional models often treat predictors of cognition as independent variables,
+failing to capture the complex interactions between different health
+determinants. The results of this study support the hypothesis that cognitive
+outcomes are best predicted using a *joint* representation that integrates
+multiple health factors. SiMLR-based embeddings consistently outperformed models
+trained on individual domains, demonstrating that cognition is influenced by an
+interplay of demographic, nutritional, physiological, psychological, and
+environmental components.  
 
-One potential explanation for this finding is that cognitive resilience and decline arise from a confluence of risk and protective factors (Stern et al., 2019). For instance, environmental toxin exposure might interact with dietary deficiencies to exacerbate cognitive decline, while physical health metrics may moderate these effects. By leveraging SiMLR, we capture these interdependencies in a manner that traditional regression models cannot.
+One potential explanation for this finding is that cognitive resilience and
+decline arise from a confluence of risk and protective factors (Stern et al.,
+2019). For instance, environmental toxin exposure might interact with dietary
+deficiencies to exacerbate cognitive decline, while physical health metrics may
+moderate these effects. By leveraging SiMLR, we capture these interdependencies
+in a manner that traditional regression models cannot.
 
-These findings highlight the importance of multi-domain, integrative approaches in cognitive health research. Future studies could extend this framework by incorporating longitudinal NHANES data to assess how joint representations evolve over time and influence cognitive trajectories. Additionally, expanding SiMLR applications to other public health datasets could refine our understanding of complex health interactions and inform early intervention strategies for cognitive disorders.  
+These findings highlight the importance of multi-domain, integrative approaches
+in cognitive health research. Future studies could extend this framework by
+incorporating longitudinal NHANES data to assess how joint representations
+evolve over time and influence cognitive trajectories. Additionally, expanding
+SiMLR applications to other public health datasets could refine our
+understanding of complex health interactions and inform early intervention
+strategies for cognitive disorders.  
 
 # Software implementation
 
@@ -59,6 +134,7 @@ Load the relevant libraries.
 # Load necessary libraries
 library(ggplot2)
 library(ggfortify)
+library(ggalluvial)
 library(gridExtra)
 library(ellipse)
 library(ANTsR)
@@ -67,19 +143,20 @@ library( nhanesA )
 library( simlr.nhanes )
 library( dplyr )
 library(htmlwidgets)
+library(stringr)
+
 data("nhanescog_2011_2014")
 data("nhanes_dict")
 
 
 
 ```
-
-
 ## NHANES example
 
-We download these data on the fly and merge them together using the embedded data as well as the `nhanesA` package.
+We download these data on the fly and merge them together using the embedded
+data as well as the `nhanesA` package.
 
-```{r nhanes,cache=FALSE,echo=FALSE}
+```{r nhanes,cache=FALSE,echo=FALSE, fig.width=10}
 #
 # Demographic data (e.g., 2011-2012 cycle)
 #
@@ -101,26 +178,45 @@ bm13 = nhanes( "BMX_H")
 env_data13 <- nhanes('PBCD_H')  # Example for phthalates and blood metals
 
 
-phdata <- nhanes('PHTHTE_G')  # Example for phthalates and blood metals
-phdata13 <- nhanes('PHTHTE_H')  # Example for phthalates and blood metals
-# pfasd <- nhanes('SSPFAS_G')  # Example for phthalates and blood metals
-# pfasd13 <- nhanes('SSPFAS_H')  # Example for phthalates and blood metals
-vocd <- nhanes('VOCWB_G')  # Example for phthalates and blood metals
-vocd13 <- nhanes('VOCWB_H')  # Example for phthalates and blood metals
-hvmt <- nhanes('UAS_G')  # Example for phthalates and blood metals
-hvmt13 <- nhanes('UAS_H')  # Example for phthalates and blood metals
-pst <- nhanes('PSTPOL_G')  # Example for phthalates and blood metals
-pst13 <- nhanes('PSTPOL_H')  # Example for phthalates and blood metals
-pfc <- nhanes('PFC_G')  # Example for phthalates and blood metals
-pfc13 <- nhanes('PFC_H')  # Example for phthalates and blood metals
-mm <- nhanes('UHM_G')  # Example for phthalates and blood metals
-mm13 <- nhanes('UHM_H')  # Example for phthalates and blood metals
-cu <- nhanes('CUSEZN_G')  # Example for phthalates and blood metals
-cu13 <- nhanes('CUSEZN_H')  # Example for phthalates and blood metals
-ig <- nhanes('IHgEM_G')  # Example for phthalates and blood metals
-ig13 <- nhanes('IHgEM_H')  # Example for phthalates and blood metals
-uh <- nhanes('UHG_G')  # Example for phthalates and blood metals
-uh13 <- nhanes('UHG_H')  # Example for phthalates and blood metals
+# Phthalates (urinary metabolites)
+phdata <- nhanes('PHTHTE_G')     # Phthalates and plasticizer metabolites, 2011–2012
+phdata13 <- nhanes('PHTHTE_H')   # Phthalates and plasticizer metabolites, 2013–2014
+
+# Per- and polyfluoroalkyl substances (PFAS)
+# pfasd <- nhanes('SSPFAS_G')    # Serum PFAS, 2011–2012
+# pfasd13 <- nhanes('SSPFAS_H')  # Serum PFAS, 2013–2014
+
+# Volatile Organic Compounds (VOCs) in blood
+vocd <- nhanes('VOCWB_G')        # Volatile organic compound metabolites in blood, 2011–2012
+vocd13 <- nhanes('VOCWB_H')      # Volatile organic compound metabolites in blood, 2013–2014
+
+# Urinary arsenic species
+hvmt <- nhanes('UAS_G')          # Urinary arsenic species, 2011–2012
+hvmt13 <- nhanes('UAS_H')        # Urinary arsenic species, 2013–2014
+
+# Pesticide metabolites in urine
+pst <- nhanes('PSTPOL_G')        # Pesticide metabolites (polar), 2011–2012
+pst13 <- nhanes('PSTPOL_H')      # Pesticide metabolites (polar), 2013–2014
+
+# Perfluorochemicals (alternative to SSPFAS)
+pfc <- nhanes('PFC_G')           # Perfluorochemicals in serum, 2011–2012
+pfc13 <- nhanes('PFC_H')         # Perfluorochemicals in serum, 2013–2014
+
+# Urinary metals
+mm <- nhanes('UHM_G')            # Urinary heavy metals, 2011–2012
+mm13 <- nhanes('UHM_H')          # Urinary heavy metals, 2013–2014
+
+# Copper, selenium, zinc (in serum)
+cu <- nhanes('CUSEZN_G')         # Serum Cu, Se, Zn, 2011–2012
+cu13 <- nhanes('CUSEZN_H')       # Serum Cu, Se, Zn, 2013–2014
+
+# Inorganic mercury in blood
+ig <- nhanes('IHgEM_G')          # Inorganic Hg (erythrocytes), 2011–2012
+ig13 <- nhanes('IHgEM_H')        # Inorganic Hg (erythrocytes), 2013–2014
+
+# Total mercury in urine
+uh <- nhanes('UHG_G')            # Urinary total mercury, 2011–2012
+uh13 <- nhanes('UHG_H')          # Urinary total mercury, 2013–2014
 
 # check UH, IH, CU, PF, PS, UA, VOC, PH, BD, BM
 
@@ -179,20 +275,25 @@ fdata = fdata[ na2f(fdata$BPXDI1 > 20 & fdata$BPXDI2 > 20 & fdata$BPXDI3 > 20 ),
 fdata$race = factor( fdata$race )
 fdata$riagendr = factor( fdata$riagendr )
 
-myformR =  create_formula( fdata, 'z_digit_re', c('SEQN', 'RIDAGEMN','RIDRETH3', 'CFASTAT', 'CFDCRNC', 'CFDCIT', 'CFDCST', 'CFDAPP', 'CFDAST', 'CFALANG', 'BPAARM', 'CFDCCS', 'CFDCST', 'CFDCIT', 'CFDCSR', 'CFDCIR', 'CFDCST', 'CFDCIT', 'CFDARNC', 'CFDDS',
-'INDHHIN2','DMDHRBR4','INDFMIN2','PEASCST1','PEASCCT1','PEASCTM1',
-# 'BPACSZ','BPXML1','URXMBP','URXMC1','URDUMMAL','SLD010H','LBXBMN','URXCNP','URXECP','URXMHH','URXMHP','URXMHNC','LBXV06','LBXV2A','LBXV3B','LBXV4C','LBXVCB','LBXVEB','LBXVCB','LBXVIPB','LBXVMC','LBXVOX','LBXVTC','LBXVTE','LBXVXY','URXUAS5','URXUAB','URXUAC','URXUMMA','URXUAS3','LBXBSE', 'RIAGENDR', 'RIDAGEYR', 'RIDRETH1', 'seqn',
-'age_cat','ridreth1','ridreth3','edu_cat','cfastat','year','female','cerad_sum',
-# 'wtint2yr','wtmec2yr',
-'BMXARML','BMXARMC','BMXHT','BMXLEG','BMXWAIST',
-'INDFMPIR', 'DRABF',
+myformR =  create_formula( fdata, 'z_digit_re', c('SEQN', 'RIDAGEMN',
+'RIDRETH3', 'CFASTAT', 'CFDCRNC', 'CFDCIT', 'CFDCST', 'CFDAPP', 'CFDAST',
+'CFALANG', 'BPAARM', 'CFDCCS', 'CFDCST', 'CFDCIT', 'CFDCSR', 'CFDCIR', 'CFDCST',
+'CFDCIT', 'CFDARNC', 'CFDDS', 'INDHHIN2', 'DMDHRBR4', 'INDFMIN2', 'PEASCST1',
+'PEASCCT1', 'PEASCTM1', # 'BPACSZ', 'BPXML1', 'URXMBP', 'URXMC1', 'URDUMMAL',
+'SLD010H', 'LBXBMN', 'URXCNP', 'URXECP', 'URXMHH', 'URXMHP', 'URXMHNC',
+'LBXV06', 'LBXV2A', 'LBXV3B', 'LBXV4C', 'LBXVCB', 'LBXVEB', 'LBXVCB', 'LBXVIPB',
+'LBXVMC', 'LBXVOX', 'LBXVTC', 'LBXVTE', 'LBXVXY', 'URXUAS5', 'URXUAB', 'URXUAC',
+'URXUMMA', 'URXUAS3', 'LBXBSE', 'RIAGENDR', 'RIDAGEYR', 'RIDRETH1', 'seqn',
+'age_cat', 'ridreth1', 'ridreth3', 'edu_cat', 'cfastat', 'year', 'female',
+'cerad_sum', # 'wtint2yr', 'wtmec2yr', 'BMXARML', 'BMXARMC', 'BMXHT', 'BMXLEG',
+'BMXWAIST', 'INDFMPIR', 'DRABF',
 getNamesFromDataframe( 'DRQS',fdata),
 getNamesFromDataframe( 'DPD',fdata),
 getNamesFromDataframe( 'cfd',fdata),
 getNamesFromDataframe( 'z_',fdata),
 getNamesFromDataframe( 'low_',fdata),
 getNamesFromDataframe( 'sdm',fdata),
-# getNamesFromDataframe( 'DPQ',depression_data, exclusions=c('DPQ080','DPQ030''DPQ080',)),
+# getNamesFromDataframe( 'DPQ',depression_data, exclusions=c('DPQ080', 'DPQ030''DPQ080',)),
 # getNamesFromDataframe( 'DPQ',depression_data, exclusions=c('DPQ100')),
 # getNamesFromDataframe( 'URXUCR',fdata ),
 # getNamesFromDataframe( 'BMXSAD',fdata ),
@@ -214,10 +315,68 @@ getNamesFromDataframe( 'DMDYRS',fdata ),
 getNamesFromDataframe( 'RIDE',fdata ),
 getNamesFromDataframe( 'CFDCST',fdata ),
 getNamesFromDataframe( 'SDDSRVY', fdata ),
-getNamesFromDataframe( 'CFDCIT',fdata ), getNamesFromDataframe( 'LC',fdata ), getNamesFromDataframe( 'SI',fdata ) ) )
+getNamesFromDataframe( 'CFDCIT',fdata ), 
+getNamesFromDataframe( 'LC', fdata ), 
+getNamesFromDataframe( 'SI', fdata ) ) )
 problematic_factors <- check_formula_factors(myformR, df)
 print(problematic_factors)
 idata2=impute_data(fdata )
+
+###
+# The rest of this code snippet is used to take the 
+# formula with all factors, categorize the factors,
+# and illustrate the categories via a bar histogram.
+#
+
+# Extract predictors
+vars <- unlist(str_split(paste(deparse(myformR), collapse = ""), "~|\\+"))
+vars <- str_trim(vars)
+vars <- vars[vars != "z_digit_re" & vars != ""]  # remove response var and blanks
+
+# Classify each variable
+classify_var <- function(v) {
+  if (tolower(v) %in% c("seqn", "riagendr", "ridageyr", "race", "dmdeduc2", "wtint2yr", "wtmec2yr")) {
+    "Demographics / Weighting"
+  } else if (startsWith(v, "RIAGENDR") || startsWith(v, "RIDAGEYR") || startsWith(v, "RIDRETH1")) {
+    "Demographics"
+  } else if (startsWith(v, "DR1T") || startsWith(v, "DR1_") || startsWith(v, "DR1")) {
+    "Dietary Intake"
+  } else if (startsWith(v, "DPQ")) {
+    "Mental Health (PHQ-9)"
+  } else if (startsWith(v, "SLD") || startsWith(v, "SLQ")) {
+    "Sleep"
+  } else if (startsWith(v, "BPX") || startsWith(v, "BPA") || startsWith(v, "BPACSZ")) {
+    "Blood Pressure / Pulse"
+  } else if (startsWith(v, "BMX") || startsWith(v, "BMD")) {
+    "Anthropometry"
+  } else if (startsWith(v, "LBX")) {
+    "Blood Laboratory / Metals / VOCs"
+  } else if (startsWith(v, "URX")) {
+    "Urinary Biomarkers"
+  } else if (startsWith(v, "URD")) {
+    "Urine-Derived Metrics"
+  } else {
+    "Other / Unknown"
+  }
+}
+
+df_summary <- data.frame(
+  Variable = vars,
+  Category = sapply(vars, classify_var)
+)
+
+df_summary %>%
+  count(Category) %>%
+  ggplot(aes(x = reorder(Category, n), y = n)) +
+  geom_col(fill = "steelblue", color = "black") +
+  coord_flip() +
+  labs(
+    title = "Number of Variables by Category in NHANES Formula",
+    x = "Category",
+    y = "Number of Variables"
+  ) +
+  theme_minimal()
+
 # mdl = lm( myformR, data=idata2)
 # summary( mdl )
 # mdl0 = lm( myformR, data=fdata)
@@ -227,19 +386,19 @@ idata2=impute_data(fdata )
 ```
 
 
-Define the categories of data so that these can be used to identify a low-dimensional representation based on the SiMLR objective.  We do not use the cognitive data with which this embedding will be associated later.
+Define the categories of data so that these can be used to identify a
+low-dimensional representation based on the SiMLR objective.  We do not use the
+cognitive data with which this embedding will be associated later.
 
 ```{r simlrcats0,eval=TRUE,echo=TRUE}
 ####################################
-if ( TRUE ) {
-  fdatanum = convert_to_numeric_matrix( fdata )
-  tarcols = colnames(fdatanum)
-  grepper =multigrep( c("_NA","limit"),tarcols) 
-  fdatanum = fdatanum[ , -grepper]
-  tarcols=tarcols[-grepper]
-  fdatanum = data.frame( (fdatanum))
-  colnames(fdatanum)=tarcols
-}
+fdatanum = convert_to_numeric_matrix( fdata )
+tarcols = colnames(fdatanum)
+grepper =multigrep( c("_NA","limit"),tarcols) 
+fdatanum = fdatanum[ , -grepper]
+tarcols=tarcols[-grepper]
+fdatanum = data.frame( (fdatanum))
+colnames(fdatanum)=tarcols
 ```
 
 ```{r simlrcats1,eval=TRUE,echo=TRUE}
@@ -257,7 +416,7 @@ colcats[ colnames(fdatanum) %in%  c(bmname,bpname,"Testosterone","TotChol","Diab
 colcats[ colnames(fdatanum) %in%   c(
   getNamesFromDataframe( "DPQ", fdatanum ), 
   getNamesFromDataframe( "SLQ", fdatanum ) )  ]='mentalhealth'
-x=c('LC','.x','.y','URDUMMAL','LBXVDE','LBX4CE')
+x=c('LC', '.x', '.y', 'URDUMMAL', 'LBXVDE', 'LBX4CE')
 colcats[ colnames(fdatanum) %in%  getNamesFromDataframe( "LBX", fdatanum, exclusions=x ) ]='exposures'
 colcats[ colnames(fdatanum) %in%  getNamesFromDataframe( "LBD", fdatanum, exclusions=x ) ]='exposures'
 colcats[ colnames(fdatanum) %in%  getNamesFromDataframe( "URX", fdatanum, exclusions=x ) ]='exposures'
@@ -288,7 +447,7 @@ for ( k in knm ) {
     temp = data.frame(convert_to_numeric_matrix( temp0 ))
     vv=apply( temp, 2, FUN=var, na.rm=T )
     temp = temp[ , vv > 0 ]
-    if ( k %in% c('exposures','diet') | TRUE ) {
+    if ( k %in% c('exposures', 'diet') | TRUE ) {
       nn = colnames(temp)
       for (  jj in 1:ncol(temp) ) { 
         temp[ , nn[jj] ] = psych::winsor( temp[ , nn[jj] ], 0.005, na.rm=T )
@@ -307,6 +466,15 @@ for ( k in knm ) {
     print(colnames(nh_list[[length(nh_list)]]))
 #    nh_list[[length(nh_list)]]=impute_and_report_na(nh_list[[length(nh_list)]] )
     }
+
+# The five views for the cleaned nhanes data which are the names of the 
+# list elements of nh_list are:
+#     * demog        
+#     * diet    
+#.    # exposures     
+#     * mentalhealth 
+#     * physical
+#
 names(nh_list)=knm
 #####
 
@@ -333,13 +501,13 @@ names( regs ) = names(nh_list)
 initu=initializeSimlr( nh_list, k=round(max_columns_list(nh_list)*0.8), jointReduction=TRUE )
 ########################### ########################### 
 mysigns = rep("positive",length(nh_list))
-mysigns[ names(nh_list) %in% c('exposures','diet') ]='either'
+mysigns[ names(nh_list) %in% c('exposures', 'diet') ]='either'
 params = list( list() )
-params[[1]][[1]] = c('cca','pca')
-params[[1]][[2]] = c('centerAndScale','np')
+params[[1]][[1]] = c('cca', 'pca')
+params[[1]][[2]] = c('centerAndScale', 'np')
 params[[2]]=list()
-params[[2]][[1]] = c('regression','ica')
-params[[2]][[2]] = c('centerAndScale','np')
+params[[2]][[1]] = c('regression', 'ica')
+params[[2]][[2]] = c('centerAndScale', 'np')
 pindex = 2
 mytf='/tmp/'
 if ( ! dir.exists(mytf) ) mytf = paste0(dirname(tempfile()),'/')
@@ -418,7 +586,7 @@ simdf2[thesena]=NA
 ##################################
 ```
 
-```{r nhanessimlrstatlm,eval=TRUE,fig.width=10,fig.height=8}
+```{r nhanessimlrstatlm,eval=TRUE,fig.width=8,fig.height=8}
 # Function to search NHANES variable descriptions
 search_nhanes_var <- function(var_name_in, dtname) {  
   # Search for the variable name (case insensitive)
