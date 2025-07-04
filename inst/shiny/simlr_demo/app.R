@@ -43,7 +43,10 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      actionButton("run_proj", "Sample Random Subject"),
+      sliderInput("subject_index", "Select Subject Index:", 
+                  min = 1, max = nrow(nh_list[[1]]), value = 1, step = 1),
+      numericInput("subject_text", "Or enter Subject Index:", 
+                   value = 1, min = 1, max = nrow(nh_list[[1]])),
       checkboxInput("show_radar", "Show Radar Plot", TRUE),
       tableOutput("interpretTable")
     ),
@@ -67,15 +70,25 @@ mainPanel(
 # ---- Server ----
 
 server <- function(input, output, session) {
-  
-  sampled_subject <- eventReactive(input$run_proj, {
-    n <- nrow(nh_list[[1]])
-    idx <- sample(1:n, 1)
-    
-    indiv_list <- lapply(nh_list, function(df) df[idx, , drop = FALSE])
-    
-    list(idx = idx, indiv_list = indiv_list)
-  })
+
+   observeEvent(input$subject_index, {
+     updateNumericInput(session, "subject_text", value = input$subject_index)
+   })
+
+   observeEvent(input$subject_text, {
+     idx <- input$subject_text
+     if (!is.na(idx) && idx >= 1 && idx <= nrow(nh_list[[1]])) {
+       updateSliderInput(session, "subject_index", value = idx)
+     }
+   })
+
+   sampled_subject <- reactive({
+     idx <- input$subject_index
+     
+     indiv_list <- lapply(nh_list, function(df) df[idx, , drop = FALSE])
+     
+     list(idx = idx, indiv_list = indiv_list)
+   })
   
   indiv_scores <- reactive({
     req(sampled_subject())
