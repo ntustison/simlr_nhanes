@@ -13,8 +13,7 @@ computeViewScores <- function(indivDf, nhDf, projMatrix) {
   mu <- colMeans(nhEmbed)
   covMat <- cov(nhEmbed)
 
-  epsilon <- 1e-6
-  covMat <- covMat + diag(epsilon, ncol(covMat))
+  covMat <- covMat + diag(1e-6, ncol(covMat))
   
   dM <- mahalanobis(indivEmbed, center = mu, cov = covMat)
   nhDists <- mahalanobis(nhEmbed, center = mu, cov = covMat)  
@@ -94,7 +93,7 @@ server <- function(input, output, session) {
     
     mu_comb <- colMeans(nh_combined)
     cov_comb <- cov(nh_combined)
-    cov_comb <- cov_comb + diag(epsilon, ncol(cov_comb))
+    cov_comb <- cov_comb + diag(1e-6, ncol(cov_comb))
     
     d_M_overall <- mahalanobis(indiv_embeddings, center = mu_comb, cov = cov_comb)
     nh_comb_dists <- mahalanobis(nh_combined, center = mu_comb, cov = cov_comb)
