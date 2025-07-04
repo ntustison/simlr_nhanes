@@ -44,14 +44,30 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       actionButton("run_proj", "Sample Random Subject"),
-      checkboxInput("show_radar", "Show Radar Plot", TRUE)
+      checkboxInput("show_radar", "Show Radar Plot", TRUE),
+      tableOutput("interpretTable")
     ),
-    mainPanel(
+mainPanel(
+  textOutput("overallScore"),
+  fluidRow(
+    column(
+      width = 6,
       verbatimTextOutput("subject_info"),
-      textOutput("overallScore"),
-      verbatimTextOutput("categoryScores"),
-      plotOutput("radarPlot")
+    ),
+    column(
+      width = 6,
+      verbatimTextOutput("categoryScores")
     )
+  ),
+  plotOutput("radarPlot")
+)
+    # mainPanel(
+    #   verbatimTextOutput("subject_info"),
+    #   tableOutput("interpretTable"),
+    #   textOutput("overallScore"),
+    #   verbatimTextOutput("categoryScores"),
+    #   plotOutput("radarPlot")
+    # )
   )
 )
 
@@ -115,7 +131,19 @@ server <- function(input, output, session) {
     cat("Age: ", nh_list_ages$Age[idx], "\n")
     cat("Gender: ", gender, "\n")
   })
-  
+
+  output$interpretTable <- renderTable({
+    data.frame(
+      `Percentile Range` = c("0–20%", "40–60%", "80–100%"),
+      Interpretation = c(
+        "Very typical (close to population mean)",
+        "Moderately typical",
+        "Highly atypical (far from mean)"
+      ),
+      check.names = FALSE
+    )
+  })
+
   output$radarPlot <- renderPlot({
     req(indiv_scores())
     if (!input$show_radar) return(NULL)
