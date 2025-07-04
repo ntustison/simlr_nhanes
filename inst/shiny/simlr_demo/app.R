@@ -61,13 +61,6 @@ mainPanel(
   ),
   plotOutput("radarPlot")
 )
-    # mainPanel(
-    #   verbatimTextOutput("subject_info"),
-    #   tableOutput("interpretTable"),
-    #   textOutput("overallScore"),
-    #   verbatimTextOutput("categoryScores"),
-    #   plotOutput("radarPlot")
-    # )
   )
 )
 
@@ -124,6 +117,7 @@ server <- function(input, output, session) {
     idx <- sampled_subject()$idx
     gender_code <- nh_list[[1]]$riagendr_1[idx]
     gender <- ifelse(gender_code == 1, "Male", "Female")
+
     
     cat("Sampled Subject Info\n")
     cat("----------------------------\n")
@@ -149,7 +143,7 @@ server <- function(input, output, session) {
     if (!input$show_radar) return(NULL)
     
     percentiles <- indiv_scores()$percentiles
-    overall_score <- indiv_scores()$overall_percentile * 100
+    overall_score <- round( indiv_scores()$overall_percentile * 100, 2)
 
     output$categoryScores <- renderPrint({
       req(indiv_scores())
@@ -160,8 +154,8 @@ server <- function(input, output, session) {
       cat("Overall atypicality percentile: ", overall_score, "\n\n")
       cat("Per-category atypicality percentiles:\n")
       for (cat_name in categories) {
-        score <- round(percentiles[cat_name] * 100, 1)
-        cat(paste0(" - ", cat_name, ": ", score, "th percentile\n"))
+        score <- round(percentiles[cat_name] * 100, 2)
+        cat(paste0(" - ", cat_name, ": ", score, "\n"))
       }
     })    
 
