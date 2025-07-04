@@ -509,7 +509,12 @@ params[[2]]=list()
 params[[2]][[1]] = c('regression', 'ica')
 params[[2]][[2]] = c('centerAndScale', 'np')
 pindex = 2
-mytf='/tmp/'
+mytf='/Users/ntustison/Desktop/ONRReportMaterials/SiMLR_NHANES/'
+for( i in seq.int( length( nh_list ) ) )
+  {
+  write.csv( nh_list[[i]], paste0( mytf, "nh_list_", i, ".csv" ) )
+
+  }
 if ( ! dir.exists(mytf) ) mytf = paste0(dirname(tempfile()),'/')
 ofn = paste0( mytf, "simlr_",
     paste0(params[[pindex]][[1]],collapse="_"), "_",
